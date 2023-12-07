@@ -1,0 +1,30 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+jobs:
+  create-vm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Provision LVH VMs
+        uses: cilium/little-vm-helper@908ab1ff8a596a03cd5221a1f8602dc44c3f906d # v0.0.12
+        with:
+          test-name: test
+          image-version: 6.3-main
+          host-mount: ./
+          dns-resolver: '1.1.1.1'
+          install-dependencies: 'true'
+          cmd: |
+            uname -a
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        uses: cilium/little-vm-helper@908ab1ff8a596a03cd5221a1f8602dc44c3f906d # v0.0.12
+        with:
+          provision: 'false'
+          cmd: |
+            set -ex
+            iptables -t nat -I POSTROUTING 1 -d 1.1.1.1/32 -p tcp --dport 80 -o enp0s2 -j SNA
